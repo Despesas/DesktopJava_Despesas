@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.Oriundo" table="oriundo" catalog="webtrunix_1">
+        <id name="codigo" type="java.lang.Integer">
+            <column name="codigo" />
+            <generator class="identity" />
+        </id>
+        <property name="descricao" type="string">
+            <column name="descricao" length="30" />
+        </property>
+        <property name="dataCadastro" type="date">
+            <column name="data_cadastro" length="0" />
+        </property>
+        <property name="diaFechamento" type="java.lang.Integer">
+            <column name="dia_fechamento" />
+        </property>
+        <property name="diaPag" type="java.lang.Integer">
+            <column name="dia_pag" />
+        </property>
+    </class>
+</hibernate-mapping>

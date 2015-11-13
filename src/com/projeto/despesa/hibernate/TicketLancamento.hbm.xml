@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.TicketLancamento" table="ticket_lancamento" catalog="webtrunix_1">
+        <id name="ITicketLancamento" type="java.lang.Integer">
+            <column name="i_ticket_lancamento" />
+            <generator class="identity" />
+        </id>
+        <property name="tipo" type="int">
+            <column name="tipo" not-null="true">
+                <comment>0- Debito 1- Credito</comment>
+            </column>
+        </property>
+        <property name="ITicketCard" type="int">
+            <column name="i_ticket_card" not-null="true" />
+        </property>
+        <property name="IInstituicao" type="int">
+            <column name="i_instituicao" not-null="true" />
+        </property>
+        <property name="valor" type="java.lang.Double">
+            <column name="valor" precision="22" scale="0" />
+        </property>
+        <property name="dataLancamento" type="timestamp">
+            <column name="data_lancamento" length="0" />
+        </property>
+        <property name="dataAlteracao" type="timestamp">
+            <column name="data_alteracao" length="0" />
+        </property>
+        <property name="saldoAnterior" type="java.lang.Double">
+            <column name="saldo_anterior" precision="22" scale="0" />
+        </property>
+        <property name="validado" type="java.lang.Integer">
+            <column name="validado" />
+        </property>
+        <property name="ILastLancamento" type="java.lang.Integer">
+            <column name="i_last_lancamento" />
+        </property>
+        <property name="mesRef" type="java.lang.Integer">
+            <column name="mes_ref" />
+        </property>
+        <property name="anoRef" type="java.lang.Integer">
+            <column name="ano_ref" />
+        </property>
+    </class>
+</hibernate-mapping>

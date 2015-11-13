@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.DespesasPagamento" table="despesas_pagamento" catalog="webtrunix_1">
+        <composite-id name="id" class="com.projeto.despesa.hibernate.DespesasPagamentoId">
+            <key-property name="formaPagamentoCodigo" type="int">
+                <column name="forma_pagamento_codigo" />
+            </key-property>
+            <key-property name="despesasCodigo" type="int">
+                <column name="despesas_codigo" />
+            </key-property>
+        </composite-id>
+        <many-to-one name="despesas" class="com.projeto.despesa.hibernate.Despesas" update="false" insert="false" fetch="select">
+            <column name="despesas_codigo" not-null="true" />
+        </many-to-one>
+        <many-to-one name="formaPagamento" class="com.projeto.despesa.hibernate.FormaPagamento" update="false" insert="false" fetch="select">
+            <column name="forma_pagamento_codigo" not-null="true" />
+        </many-to-one>
+        <property name="dataPagamento" type="timestamp">
+            <column name="data_pagamento" length="0" />
+        </property>
+    </class>
+</hibernate-mapping>

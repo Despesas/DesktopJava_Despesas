@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.TicketInstituicao" table="ticket_instituicao" catalog="webtrunix_1">
+        <id name="ITicketInstituicao" type="java.lang.Integer">
+            <column name="i_ticket_instituicao" />
+            <generator class="identity" />
+        </id>
+        <property name="nome" type="string">
+            <column name="nome" length="50" not-null="true" />
+        </property>
+        <property name="cnpj" type="string">
+            <column name="cnpj" length="11" />
+        </property>
+        <property name="dataCadastro" type="timestamp">
+            <column name="data_cadastro" length="0" />
+        </property>
+        <property name="dataAlteracao" type="timestamp">
+            <column name="data_alteracao" length="0" />
+        </property>
+    </class>
+</hibernate-mapping>

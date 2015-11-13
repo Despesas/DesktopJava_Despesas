@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+    <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+    <property name="hibernate.connection.url">jdbc:mysql://dbmy0019.whservidor.com:3306/webtrunix_1?zeroDateTimeBehavior=convertToNull</property>
+    <property name="hibernate.connection.username">webtrunix_1</property>
+    <property name="hibernate.connection.password">Barbosa0302</property>
+    <property name="hibernate.show_sql">true</property>
+    <property name="hibernate.format_sql">true</property>
+    <property name="hibernate.query.factory_class">org.hibernate.hql.classic.ClassicQueryTranslatorFactory</property>
+    <mapping class="" file="" jar="" package="" resource="META-INF/hibernate.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/UsuarioServer.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/Despesas.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/Oriundo.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/TicketTipo.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/TicketLancamento.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/TicketInstituicao.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/DespesasPagamento.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/TicketCard.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/Usuario.hbm.xml"/>
+    <mapping resource="com/projeto/despesa/hibernate/FormaPagamento.hbm.xml"/>
+  </session-factory>
+</hibernate-configuration>

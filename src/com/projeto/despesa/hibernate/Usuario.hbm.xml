@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.Usuario" table="usuario" catalog="webtrunix_1">
+        <id name="codigo" type="java.lang.Integer">
+            <column name="codigo" />
+            <generator class="identity" />
+        </id>
+        <property name="nome" type="string">
+            <column name="nome" length="30" />
+        </property>
+        <property name="usuario" type="string">
+            <column name="usuario" length="10" />
+        </property>
+        <property name="senha" type="string">
+            <column name="senha" length="10" />
+        </property>
+        <property name="nivel" type="java.lang.Integer">
+            <column name="nivel" />
+        </property>
+    </class>
+</hibernate-mapping>

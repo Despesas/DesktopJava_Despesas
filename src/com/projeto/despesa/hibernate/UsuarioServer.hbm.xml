@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!-- Generated 01/07/2013 15:09:43 by Hibernate Tools 3.2.1.GA -->
+<hibernate-mapping>
+    <class name="com.projeto.despesa.hibernate.UsuarioServer" table="usuario_server" catalog="webtrunix_1">
+        <id name="codigo" type="java.lang.Integer">
+            <column name="codigo" />
+            <generator class="identity" />
+        </id>
+        <property name="nome" type="string">
+            <column name="nome" length="45" />
+        </property>
+        <property name="userSys" type="string">
+            <column name="user_sys" length="15" />
+        </property>
+        <property name="senhaSys" type="string">
+            <column name="senha_sys" length="15" />
+        </property>
+        <property name="userServer" type="string">
+            <column name="user_server" length="20" />
+        </property>
+        <property name="senhaServer" type="string">
+            <column name="senha_server" length="20" />
+        </property>
+        <property name="portaServer" type="string">
+            <column name="porta_server" />
+        </property>
+        <property name="urlServer" type="string">
+            <column name="url_server" length="60" />
+        </property>
+    </class>
+</hibernate-mapping>
