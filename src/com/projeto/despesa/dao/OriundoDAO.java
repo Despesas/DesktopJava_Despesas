@@ -146,7 +146,8 @@ public class OriundoDAO {
 
     public List<Oriundo> listar() throws SQLException {
         List<Oriundo> resultado = new ArrayList<Oriundo>();
-        Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
+        conexao propCon = new conexao();
+        Connection con = DriverManager.getConnection(new conexao().url, propCon.config.getString("usuario"), propCon.config.getString("senha"));
         PreparedStatement ps = null;
         ResultSet rs = null;
         String sqlListar = "SELECT * FROM oriundo Order by codigo DESC";
