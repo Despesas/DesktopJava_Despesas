@@ -74,7 +74,7 @@ public class conexao {
        
         try {
             
-            this.url ="jdbc:mysql:"+ config.getString("url")+":"+config.getString("porta.banco");
+            this.url ="jdbc:mysql://"+ config.getString("url")+":"+config.getString("porta.banco");
             this.driver = config.getString("driver");
             this.usuario = config.getString("usuario");
             this.senha = config.getString("senha");
