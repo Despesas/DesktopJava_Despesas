@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [master, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build e testes
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Instalar Ant
+        run: |
+          if ! command -v ant >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ant
+          fi
+          ant -version
+
+      - name: Compilar, gerar o jar e rodar os testes
+        run: ant -noinput clean jar test
+
+      - name: Empacotar jar com lib/
+        run: |
+          cp README.md LICENSE config.example.properties schema.sql dist/
+          cd dist
+          zip -r ../Despesas.zip Despesas.jar lib README.md LICENSE config.example.properties schema.sql
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Despesas
+          path: Despesas.zip
+
+  release:
+    name: Publicar release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Despesas
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: Despesas.zip
+          generate_release_notes: true
