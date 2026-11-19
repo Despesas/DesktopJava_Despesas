@@ -1,2 +1,6 @@
 /build/
 /dist/
+*.class
+/nbproject/private/
+config.properties
+/lib/test/
