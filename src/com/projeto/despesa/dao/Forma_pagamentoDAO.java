@@ -1,183 +1,81 @@
 package com.projeto.despesa.dao;
 
 import com.projeto.despesa.dto.Forma_pagamento;
-import java.sql.*;
-import java.util.*;
+import com.projeto.despesa.utilitarios.Mensagens;
 import com.projeto.despesa.utilitarios.conexao;
-import javax.swing.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+/** Acesso a tabela {@code forma_pagamento}. */
 public class Forma_pagamentoDAO {
 
-  public Forma_pagamentoDAO() {
-    try {
-      Class.forName(new conexao().config.getString("driver"));
-    } catch (ClassNotFoundException ex) {
-      JOptionPane.showMessageDialog(null, "Driver Erro: " + ex.getMessage(), "Construtor da Classe", 0);
-      ex.printStackTrace();
+    public void salvar(Forma_pagamento forma_pagamento) throws SQLException {
+        String sql = "INSERT INTO forma_pagamento (nome, data_cadastro, data_alteracao) VALUES (?, ?, ?)";
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, forma_pagamento.getNome());
+            ps.setDate(2, forma_pagamento.getData_cadastro());
+            ps.setTimestamp(3, forma_pagamento.getData_alteracao());
+            ps.executeUpdate();
+        }
+        Mensagens.info("Mensagem do Sistema - Salvar", "Inserido Com Sucesso");
     }
-  }
 
-  public void salvar(Forma_pagamento forma_pagamento) throws SQLException {
-    Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    PreparedStatement ps = null;
-    String sqlSalvar = "INSERT INTO forma_pagamento (nome, data_cadastro, data_alteracao ) VALUES (?, ?, ?)";
-    try {
-      ps = con.prepareStatement(sqlSalvar);
-      ps.setString(1, forma_pagamento.getNome());
-      ps.setDate(2, forma_pagamento.getData_cadastro());
-      ps.setTimestamp(3, forma_pagamento.getData_alteracao());
-      ps.executeUpdate();
-      JOptionPane.showMessageDialog(null, "Inserido Com Sucesso: ", "Mensagem do Sistema - Salvar", 1);
-    } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Salvar", 0);
-      e.printStackTrace();
-    } catch (NullPointerException e) {
-      JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-      e.printStackTrace();
-    } catch (SQLException e) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-      e.printStackTrace();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-      e.printStackTrace();
-    } finally {
-      ps.close();
-      con.close();
+    public void atualizar(Forma_pagamento forma_pagamento) throws SQLException {
+        String sql = "UPDATE forma_pagamento SET nome=?, data_cadastro=?, data_alteracao=? WHERE codigo=?";
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, forma_pagamento.getNome());
+            ps.setDate(2, forma_pagamento.getData_cadastro());
+            ps.setTimestamp(3, forma_pagamento.getData_alteracao());
+            ps.setInt(4, forma_pagamento.getCodigo());
+            ps.executeUpdate();
+        }
+        Mensagens.info("Mensagem do Sistema - Atualizar", "Atualizado Com Sucesso");
     }
-  }
 
-  public void atualizar(Forma_pagamento forma_pagamento) throws SQLException {
-    Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    PreparedStatement ps = null;
-    String sqlAtualizar = "UPDATE forma_pagamento SET nome=?, data_cadastro=?, data_alteracao=? WHERE codigo=?";
-    try {
-      ps = con.prepareStatement(sqlAtualizar);
-      ps.setString(1, forma_pagamento.getNome());
-      ps.setDate(2, forma_pagamento.getData_cadastro());
-      ps.setTimestamp(3, forma_pagamento.getData_alteracao());
-      ps.setInt(4, forma_pagamento.getCodigo());
-      ps.executeUpdate();
-      JOptionPane.showMessageDialog(null, "Atualizado Com Sucesso: ", "Mensagem do Sistema - Atualizar", 1);
-    } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Atualizar", 0);
-      e.printStackTrace();
-    } catch (NullPointerException e) {
-      JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-      e.printStackTrace();
-    } catch (SQLException e) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-      e.printStackTrace();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-      e.printStackTrace();
-    } finally {
-      ps.close();
-      con.close();
+    public void excluir(Forma_pagamento forma_pagamento) throws SQLException {
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("DELETE FROM forma_pagamento WHERE codigo=?")) {
+            ps.setInt(1, forma_pagamento.getCodigo());
+            ps.executeUpdate();
+        }
+        Mensagens.info("Mensagem do Sistema - Excluir", "Excluido Com Sucesso");
     }
-  }
 
-  public void excluir(Forma_pagamento forma_pagamento) throws SQLException {
-    Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    PreparedStatement ps = null;
-    String sqlExcluir = "DELETE FROM forma_pagamento WHERE codigo=?";
-    try {
-      ps = con.prepareStatement(sqlExcluir);
-      ps.setInt(1, forma_pagamento.getCodigo());
-      ps.executeUpdate();
-      JOptionPane.showMessageDialog(null, "Ecluido Com Sucesso: ", "Mensagem do Sistema - Excluir", 1);
-    } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Excluir", 0);
-      e.printStackTrace();
-    } catch (NullPointerException e) {
-      JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-      e.printStackTrace();
-    } catch (SQLException e) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-      e.printStackTrace();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-      e.printStackTrace();
-    } finally {
-      ps.close();
-      con.close();
+    /** @return a forma de pagamento, ou {@code null} se o codigo nao existir */
+    public Forma_pagamento localizar(Integer codigo) throws SQLException {
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("SELECT * FROM forma_pagamento WHERE codigo=?")) {
+            ps.setInt(1, codigo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
+            }
+        }
     }
-  }
 
-  public Forma_pagamento localizar(Integer codigo) throws SQLException {
-    Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    String sqlLocalizar = "SELECT * FROM forma_pagamento WHERE codigo=?";
-    Forma_pagamento forma_pagamento = new Forma_pagamento();
-    try {
-      ps = con.prepareStatement(sqlLocalizar);
-      ps.setInt(1, codigo);
-      rs = ps.executeQuery();
-      //if(!rs.next()){
-      //return null;
-      //}
-      forma_pagamento.setCodigo(rs.getInt("codigo"));
-      forma_pagamento.setNome(rs.getString("nome"));
-      forma_pagamento.setData_cadastro(rs.getDate("data_cadastro"));
-      forma_pagamento.setData_alteracao(rs.getTimestamp("data_alteracao"));
-      return forma_pagamento;
-    } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Localizar", 0);
-      e.printStackTrace();
-    } catch (NullPointerException e) {
-      JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } catch (SQLException e) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } finally {
-      ps.close();
-      con.close();
+    public List<Forma_pagamento> listar() throws SQLException {
+        List<Forma_pagamento> resultado = new ArrayList<Forma_pagamento>();
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("SELECT * FROM forma_pagamento");
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                resultado.add(mapear(rs));
+            }
+        }
+        return resultado;
     }
-    return forma_pagamento;
-  }
 
-  public List<Forma_pagamento> listar() throws SQLException {
-    List<Forma_pagamento> resultado = new ArrayList<Forma_pagamento>();
-    //Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    String sqlListar = "SELECT * FROM forma_pagamento";
-    Forma_pagamento forma_pagamento;
-    try {
-      ps = con.prepareStatement(sqlListar);
-      rs = ps.executeQuery();
-      //if(rs==null){
-      //return null;
-      //}
-      while (rs.next()) {
-        forma_pagamento = new Forma_pagamento();
+    public static Forma_pagamento mapear(ResultSet rs) throws SQLException {
+        Forma_pagamento forma_pagamento = new Forma_pagamento();
         forma_pagamento.setCodigo(rs.getInt("codigo"));
         forma_pagamento.setNome(rs.getString("nome"));
         forma_pagamento.setData_cadastro(rs.getDate("data_cadastro"));
         forma_pagamento.setData_alteracao(rs.getTimestamp("data_alteracao"));
-        resultado.add(forma_pagamento);
-      }
-    } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Localizar", 0);
-      e.printStackTrace();
-    } catch (NullPointerException e) {
-      JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } catch (SQLException e) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-      e.printStackTrace();
-    } finally {
-      ps.close();
-      con.close();
+        return forma_pagamento;
     }
-    return resultado;
-  }
 }

@@ -10,7 +10,9 @@ import com.projeto.despesa.dto.Despesas;
 import com.projeto.despesa.dto.Oriundo;
 import com.projeto.despesa.form.CadastroDireto;
 import com.projeto.despesa.starter.StartAddOrigemPag;
+import com.projeto.despesa.utilitarios.CalculoParcela;
 import com.projeto.despesa.utilitarios.Data;
+import com.projeto.despesa.utilitarios.Mensagens;
 import com.projeto.despesa.utilitarios.FormatarCampo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -148,51 +150,41 @@ public class EventCadastroDespesa extends CadastroDireto implements ActionListen
     }
 
     public void incluir() {
-
-        
-        Despesas despesa = null;
-        int parcelas = 0;
-        int parcela = 0;
-        float valor = 0;
-        float valorParcela = 0;
-        Data useData = null;
-        
+        Despesas despesa;
         try {
-            parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-            parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-            String valorS = painelDespesas.tfValor.getText();
-            valorS = valorS.replace(".", "");
-            valorS = valorS.replace(",", ".");
-            valor = Float.parseFloat(valorS);
-            valorParcela = Float.parseFloat(new FormatarCampo().numberFormat.format(valor / parcelas).replace(".", "").replace(",", "."));
-            useData = new Data();
-            despesa = new Despesas();
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Salvar", 0);
-            e.printStackTrace();
-        }
-        catch (Exception ex) {
-            JOptionPane.showMessageDialog(null, "Exeption Erro: " + ex.getMessage(), "ClasseDAO Func.Salvar", 0);
-        }
-        despesa = getEncheDespesa(despesa, parcelas, parcela, valor, valorParcela, useData);
-
-        try {
-            if ((parcelas - parcela) + 1 == 1) {
-                System.out.println("==1");
-                new DespesasDAO().salvar(despesa);
-
-            } else {
-
-                new DespesasDAO().salvarParcelado(despesa);
-                // inserirDespesaParcelada(despesa, parcelas, parcela);
-                System.out.println("CHAMOU A FUNÇÂO DESPESA PARCELADA");
-
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
             }
+            if (painelDespesas.cbOrigem.getSelectedIndex() <= 0) {
+                JOptionPane.showMessageDialog(this, "Selecione a origem do pagamento.", "Mensagem do Sistema - Salvar", 0);
+                return;
+            }
+            double valor = CalculoParcela.parseValor(painelDespesas.tfValor.getText());
+            double valorParcela = CalculoParcela.valorParcela(valor, parcelas);
+            despesa = getEncheDespesa(new Despesas(), parcelas, parcela, (float) valor, (float) valorParcela, new Data());
+        } catch (NumberFormatException e) {
+            // antes a despesa ficava nula e o metodo seguia ate um NullPointerException
+            Mensagens.erro("Mensagem do Sistema - Salvar", "Informe numeros validos em parcelas e valor.", e);
+            return;
+        }
+        if (despesa.getData_desp() == null || despesa.getData_pag() == null) {
+            JOptionPane.showMessageDialog(this, "Informe a data da despesa e a data de pagamento.", "Mensagem do Sistema - Salvar", 0);
+            return;
+        }
 
-        } catch (Exception e) {
-            
-        } finally {
+        try {
+            if (CalculoParcela.pagamentoUnico(despesa.getParcela(), despesa.getParcelas())) {
+                new DespesasDAO().salvar(despesa);
+            } else {
+                new DespesasDAO().salvarParcelado(despesa);
+            }
             cancela();
+        } catch (Exception e) {
+            // antes: catch vazio, o erro de gravacao era ignorado
+            Mensagens.erro("Mensagem do Sistema - Salvar", "Nao foi possivel gravar a despesa.", e);
         }
     }
 /*
@@ -219,56 +211,44 @@ public class EventCadastroDespesa extends CadastroDireto implements ActionListen
     */
 
     private void getValorTotal() {
-        int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-        int parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-        
-       if(parcelas >= parcela){
-        String valorP = painelDespesas.tfValorParcela.getText();
-        valorP = valorP.replace(".", "");
-        valorP = valorP.replace(",", ".");
-        Double valorParcela = Double.parseDouble(valorP) ;
-        Double valor = (valorParcela * parcelas);
-        
-        int quant = (parcelas - parcela)+1;
-        Double valor_restante = (valorParcela * quant);
-
-        if (parcelas >= parcela) {
-
-            valorP = new FormatarCampo().numberFormat.format(valorParcela);
-            //System.out.println(v);
-            painelDespesas.tfValor.setText(new FormatarCampo().numberFormat.format(valor));
-            painelDespesas.tfValorRestante.setText(new FormatarCampo().numberFormat.format(valor_restante));
+        try {
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
+            }
+            double valorParcela = CalculoParcela.parseValor(painelDespesas.tfValorParcela.getText());
+            double valor = CalculoParcela.valorTotal(valorParcela, parcelas);
+            double valorRestante = CalculoParcela.valorRestante(valorParcela, CalculoParcela.parcelasRestantes(parcelas, parcela, false));
+            painelDespesas.tfValor.setText(CalculoParcela.formatarValor(valor));
+            painelDespesas.tfValorRestante.setText(CalculoParcela.formatarValor(valorRestante));
+        } catch (NumberFormatException e) {
+            Mensagens.erro("Valor", "Informe numeros validos em parcelas e valores.", e);
         }
-       }else{
-           JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
-           painelDespesas.tfParcela.setText("1");
-       }
     }
     
     private void getValorParcela() {
-        int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-        int parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-        
-       if(parcelas >= parcela){
-        String valorT = painelDespesas.tfValor.getText().replace(".", "").replace(",", ".");
-        
-        Double valor = Double.parseDouble(valorT);
-        Double valorParcela = (valor / parcelas) ;
-        
-        int quant = (parcelas - parcela)+1;
-        Double valor_restante = (valorParcela * quant);
-
-        if (parcelas >= parcela) {
-
-            valorT = new FormatarCampo().numberFormat.format(valorParcela);
-            //System.out.println(v);
-            painelDespesas.tfValorParcela.setText(new FormatarCampo().numberFormat.format(valorParcela));
-            painelDespesas.tfValorRestante.setText(new FormatarCampo().numberFormat.format(valor_restante));
+        try {
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
+            }
+            double valor = CalculoParcela.parseValor(painelDespesas.tfValor.getText());
+            double valorParcela = CalculoParcela.valorParcela(valor, parcelas);
+            double valorRestante = CalculoParcela.valorRestante(valorParcela, CalculoParcela.parcelasRestantes(parcelas, parcela, false));
+            painelDespesas.tfValorParcela.setText(CalculoParcela.formatarValor(valorParcela));
+            painelDespesas.tfValorRestante.setText(CalculoParcela.formatarValor(valorRestante));
+        } catch (NumberFormatException e) {
+            Mensagens.erro("Valor", "Informe numeros validos em parcelas e valores.", e);
         }
-       }else{
-           JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
-           painelDespesas.tfParcela.setText("1");
-       }
+    }
+
+    private void avisoParcelaInvalida() {
+        JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
+        painelDespesas.tfParcela.setText("1");
     }
 
     public void alterar() {

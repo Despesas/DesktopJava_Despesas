@@ -10,6 +10,7 @@ import com.projeto.despesa.dto.Oriundo;
 import com.projeto.despesa.form.AddFormaPagamento;
 import com.projeto.despesa.starter.StartDespesas;
 import com.projeto.despesa.utilitarios.Data;
+import com.projeto.despesa.utilitarios.Mensagens;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
@@ -40,7 +41,7 @@ public class EventAddFormaPagamento extends AddFormaPagamento implements ActionL
 
       new Forma_pagamentoDAO().salvar(formaPagamento);
     } catch (SQLException ex) {
-      Logger.getLogger(EventAddOrigem.class.getName()).log(Level.SEVERE, null, ex);
+      Mensagens.erro("Forma de Pagamento", "Nao foi possivel gravar a forma de pagamento.", ex);
     } finally {
       this.dispose();
     }

@@ -10,7 +10,9 @@ import com.projeto.despesa.dto.Despesas;
 import com.projeto.despesa.dto.Oriundo;
 import com.projeto.despesa.form.AlteracaoDireta;
 import com.projeto.despesa.starter.StartAddOrigemPag;
+import com.projeto.despesa.utilitarios.CalculoParcela;
 import com.projeto.despesa.utilitarios.Data;
+import com.projeto.despesa.utilitarios.Mensagens;
 import com.projeto.despesa.utilitarios.FormatarCampo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -147,20 +149,31 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
     }
 
     public void alterar() {
-        Despesas desp = new Despesas();
-        int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-        int parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-        float valor = Float.parseFloat(painelDespesas.tfValor.getText().replace(".", "").replace(",", "."));
-        float valorParcela = Float.parseFloat(painelDespesas.tfValorParcela.getText().replace(".", "").replace(",", "."));
-        float valorRestante = Float.parseFloat(painelDespesas.tfValorRestante.getText().replace(".", "").replace(",", "."));
-        Data useData = new Data();
-
-        desp = getEncheDespesa(desp, parcelas, parcela, valor, valorParcela, valorRestante, useData);
+        Despesas desp;
+        try {
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
+            }
+            if (painelDespesas.cbOrigem.getSelectedIndex() <= 0) {
+                JOptionPane.showMessageDialog(this, "Selecione a origem do pagamento.", "Mensagem do Sistema - Alterar", 0);
+                return;
+            }
+            float valor = (float) CalculoParcela.parseValor(painelDespesas.tfValor.getText());
+            float valorParcela = (float) CalculoParcela.parseValor(painelDespesas.tfValorParcela.getText());
+            float valorRestante = 0f; // nao e gravado (coluna valor_restante desativada)
+            desp = getEncheDespesa(new Despesas(), parcelas, parcela, valor, valorParcela, valorRestante, new Data());
+        } catch (NumberFormatException e) {
+            Mensagens.erro("Mensagem do Sistema - Alterar", "Informe numeros validos em codigo, parcelas e valores.", e);
+            return;
+        }
         try {
             new DespesasDAO().atualizar(desp);
             cancela();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            Mensagens.erro("Mensagem do Sistema - Alterar", "Nao foi possivel alterar a despesa.", ex);
         }
     }
 
@@ -170,57 +183,45 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
     private void inserirDespesaParcelada(Despesas despesa, int parcelas, int parcela) {
     }
 
-  private void getValorTotal() {
-        int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-        int parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-        
-       if(parcelas >= parcela){
-        String valorP = painelDespesas.tfValorParcela.getText();
-        valorP = valorP.replace(".", "");
-        valorP = valorP.replace(",", ".");
-        Double valorParcela = Double.parseDouble(valorP) ;
-        Double valor = (valorParcela * parcelas);
-        
-        int quant = (parcelas - parcela)+1;
-        Double valor_restante = (valorParcela * quant);
-
-        if (parcelas >= parcela) {
-
-            valorP = new FormatarCampo().numberFormat.format(valorParcela);
-            //System.out.println(v);
-            painelDespesas.tfValor.setText(new FormatarCampo().numberFormat.format(valor));
-            painelDespesas.tfValorRestante.setText(new FormatarCampo().numberFormat.format(valor_restante));
+    private void getValorTotal() {
+        try {
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
+            }
+            double valorParcela = CalculoParcela.parseValor(painelDespesas.tfValorParcela.getText());
+            double valor = CalculoParcela.valorTotal(valorParcela, parcelas);
+            double valorRestante = CalculoParcela.valorRestante(valorParcela, CalculoParcela.parcelasRestantes(parcelas, parcela, false));
+            painelDespesas.tfValor.setText(CalculoParcela.formatarValor(valor));
+            painelDespesas.tfValorRestante.setText(CalculoParcela.formatarValor(valorRestante));
+        } catch (NumberFormatException e) {
+            Mensagens.erro("Valor", "Informe numeros validos em parcelas e valores.", e);
         }
-       }else{
-           JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
-           painelDespesas.tfParcela.setText("1");
-       }
     }
     
     private void getValorParcela() {
-        int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText());
-        int parcela = Integer.parseInt(painelDespesas.tfParcela.getText());
-        
-       if(parcelas >= parcela){
-        String valorT = painelDespesas.tfValor.getText().replace(".", "").replace(",", ".");
-        
-        Double valor = Double.parseDouble(valorT);
-        Double valorParcela = (valor / parcelas) ;
-        
-        int quant = (parcelas - parcela)+1;
-        Double valor_restante = (valorParcela * quant);
-
-        if (parcelas >= parcela) {
-
-            valorT = new FormatarCampo().numberFormat.format(valorParcela);
-            //System.out.println(v);
-            painelDespesas.tfValorParcela.setText(new FormatarCampo().numberFormat.format(valorParcela));
-            painelDespesas.tfValorRestante.setText(new FormatarCampo().numberFormat.format(valor_restante));
+        try {
+            int parcelas = Integer.parseInt(painelDespesas.tfParcelas.getText().trim());
+            int parcela = Integer.parseInt(painelDespesas.tfParcela.getText().trim());
+            if (!CalculoParcela.parcelaValida(parcela, parcelas)) {
+                avisoParcelaInvalida();
+                return;
+            }
+            double valor = CalculoParcela.parseValor(painelDespesas.tfValor.getText());
+            double valorParcela = CalculoParcela.valorParcela(valor, parcelas);
+            double valorRestante = CalculoParcela.valorRestante(valorParcela, CalculoParcela.parcelasRestantes(parcelas, parcela, false));
+            painelDespesas.tfValorParcela.setText(CalculoParcela.formatarValor(valorParcela));
+            painelDespesas.tfValorRestante.setText(CalculoParcela.formatarValor(valorRestante));
+        } catch (NumberFormatException e) {
+            Mensagens.erro("Valor", "Informe numeros validos em parcelas e valores.", e);
         }
-       }else{
-           JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
-           painelDespesas.tfParcela.setText("1");
-       }
+    }
+
+    private void avisoParcelaInvalida() {
+        JOptionPane.showMessageDialog(null, "a Parcela Atual deve ser menor ou igual a quantidade de Parcelas\n e maior que 0(zero)", "Quantidade de Parcelas", 0);
+        painelDespesas.tfParcela.setText("1");
     }
 
     public void cancela() {
@@ -329,9 +330,10 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
             codigo = Integer.parseInt(tfCodigo.getText());
             try {
                 Despesas desp = new DespesasDAO().localizar(codigo);
-                if (desp.getCodigo() != null) {
+                if (desp != null) {
                     encheCampos(desp);
                 } else {
+                    JOptionPane.showMessageDialog(null, "Despesa não encontrada", "Localizar", 0);
                     painelButons.btAlterar.setEnabled(false);
                     painelButons.btExcluir.setEnabled(false);
 
@@ -366,8 +368,9 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
         painelDespesas.tfObs.setText(desp.getObs());
         painelDespesas.tfParcela.setText(desp.getParcela().toString());
         painelDespesas.tfParcelas.setText(desp.getParcelas().toString());
-        painelDespesas.tfValor.setText(desp.getValor().toString());
-        painelDespesas.tfValorParcela.setText(desp.getValor_parcela().toString());
+        // antes: Float.toString ("1234.5") era relido como pt-BR e virava 12345
+        painelDespesas.tfValor.setText(CalculoParcela.formatarValor(desp.getValor()));
+        painelDespesas.tfValorParcela.setText(CalculoParcela.formatarValor(desp.getValor_parcela()));
 //        painelDespesas.tfValorRestante.setText(desp.getValor_restante().toString());
        // painelDespesas.ftfData1.setValue(new Data().getDataTela(desp.getData_desp()).toString());
         painelDespesas.ftfData.setDate(dt_lanc);
@@ -388,7 +391,7 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
 
     private int getIndex(Integer cod_orindo) {
         for (int i = 0; i < listOrigem.size(); i++) {
-            if (cod_orindo == listOrigem.get(i).getCodigo()) {
+            if (listOrigem.get(i).getCodigo().equals(cod_orindo)) {
                 return i + 1;
             }
         }
@@ -408,7 +411,9 @@ public class EventAlteracaoDespesa extends AlteracaoDireta implements ActionList
                 cancela();
 
             } catch (SQLException ex) {
-                Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
+                Mensagens.erro("Mensagem do Sistema - Excluir", "Nao foi possivel excluir a despesa.", ex);
+            } catch (NumberFormatException ex) {
+                Mensagens.erro("Mensagem do Sistema - Excluir", "Codigo invalido.", ex);
             }
 
         }

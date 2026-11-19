@@ -1,4 +1,4 @@
-package com.java.geraDTO.classeGerada.bean;
+package com.projeto.despesa.dto;
 
 import java.sql.*; 
 

@@ -4,22 +4,20 @@
  */
 package com.projeto.despesa.event;
 
-import com.java.geraDTO.classeGerada.bean.Usuario_server;
+import com.projeto.despesa.dto.Usuario_server;
 import com.projeto.despesa.dao.Usuario_serverDAO;
 import com.projeto.despesa.form.Login;
 import com.projeto.despesa.starter.StartPrincipal;
-import com.projeto.despesa.utilitarios.conexao;
-import com.sun.awt.AWTUtilities;
+import com.projeto.despesa.utilitarios.ConfiguracaoBanco;
+import com.projeto.despesa.utilitarios.Mensagens;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
@@ -29,15 +27,11 @@ import javax.swing.JOptionPane;
  */
 public class EventLogin extends Login implements ActionListener {
 
-  List<Usuario_server> UserList;
-
   public EventLogin() {
     getInit();
-
   }
 
   private void getInit() {
-//        AWTUtilities.setWindowOpacity(this, 0.7F);
     setVisible(true);
     Llogo.setOpaque(false);
     PpainelGeral.setOpaque(false);
@@ -46,63 +40,51 @@ public class EventLogin extends Login implements ActionListener {
     tfSenha.addActionListener(this);
     tfUsuario.addActionListener(this);
     this.setIconImage(new ImageIcon(this.getClass().getResource("/com/projeto/despesa/images/TributsIco32.png")).getImage());
-    try {
-      UserList = new Usuario_serverDAO().listar();
-    } catch (SQLException ex) {
-      JOptionPane.showMessageDialog(null, "SQLException Erro: " + ex.getMessage(), "EventLogin Func: getInit()", 0);
-    }
-
-
   }
 
-  private void setProperties(Usuario_server user) {
-
-
+  /** Converte o registro de usuario_server nas propriedades lidas por {@code conexao}. */
+  public static Properties propriedadesSessao(Usuario_server user) {
     Properties properties = new Properties();
-    properties.setProperty("url", user.getUrl_server());
-    properties.setProperty("usuario", user.getUser_server());
-    properties.setProperty("senha", user.getSenha_server());
-    properties.setProperty("driver", "com.mysql.jdbc.Driver");
-    properties.setProperty("porta.banco", user.getPorta_server());
+    properties.setProperty("url", valor(user.getUrl_server()));
+    properties.setProperty("usuario", valor(user.getUser_server()));
+    properties.setProperty("senha", valor(user.getSenha_server()));
+    properties.setProperty("driver", ConfiguracaoBanco.DRIVER_PADRAO);
+    properties.setProperty("porta.banco", valor(user.getPorta_server()));
+    return properties;
+  }
 
-    try {
-//            String local = config.getClass().getResource("com/projeto/despesa/utilitarios/conexao.java").toString()+"/bancodedados.properties";
-//            System.out.println(local);
-      //Criamos um objeto FileOutputStream             
-      FileOutputStream fos = new FileOutputStream("c://Despesas/lib/bancodedados.properties"); //"c://Despesas/lib/bancodedados.properties"
-      //grava os dados no arquivo
-      properties.store(fos, "Propriedade usuario");
-      //fecha o arquivo
-      fos.close();
-    } catch (IOException ex) {
-      System.out.println(ex.getMessage());
-      ex.printStackTrace();
+  private static String valor(String s) {
+    return s == null ? "" : s;
+  }
+
+  /** Grava a conexao do usuario no arquivo de sessao (antes fixo em c://Despesas/lib). */
+  private boolean setProperties(Usuario_server user) {
+    File arquivo = ConfiguracaoBanco.arquivoSessao(ConfiguracaoBanco.carregar());
+    File pasta = arquivo.getAbsoluteFile().getParentFile();
+    if (pasta != null && !pasta.isDirectory() && !pasta.mkdirs()) {
+      Mensagens.erro("Login", "Nao foi possivel criar " + pasta.getAbsolutePath(), null);
+      return false;
     }
-
-
-
+    try (OutputStream fos = new FileOutputStream(arquivo)) {
+      propriedadesSessao(user).store(fos, "Propriedade usuario");
+      return true;
+    } catch (IOException ex) {
+      Mensagens.erro("Login", "Nao foi possivel gravar " + arquivo.getAbsolutePath(), ex);
+      return false;
+    }
   }
 
   private boolean logar() {
     try {
-      Usuario_server user = new Usuario_serverDAO().Login(tfUsuario.getText(), tfSenha.getText());
-      
-      if (user.getCodigo()!= null) {
-  //      for (int i = 0; i < UserList.size(); i++) {
-  //        if (UserList.get(i).getUser_sys().equals(tfUsuario.getText())) {
-  //          if (UserList.get(i).getSenha_sys().equals(tfSenha.getText())) {
-             setProperties(user);
-             return true;
-  //          }
-  //        }
-  //      }
+      Usuario_server user = new Usuario_serverDAO().Login(tfUsuario.getText(), new String(tfSenha.getPassword()));
+      // antes: user nulo (login invalido) gerava NullPointerException
+      if (user != null && user.getCodigo() != null) {
+        return setProperties(user);
       }
-
-      
     } catch (SQLException ex) {
-       JOptionPane.showMessageDialog(null, "Boolean Error: \n Usuario/Senha Não Encontrado.", "ClasseDAO Func. Salvar", 0);
-      Logger.getLogger(EventLogin.class.getName()).log(Level.SEVERE, null, ex);
-      return false;
+      Mensagens.erro("Login", "Erro ao consultar o banco de contas.", ex);
+    } catch (IllegalStateException ex) {
+      Mensagens.erro("Login", "Configuracao do banco ausente.", ex);
     }
     return false;
   }
@@ -114,12 +96,11 @@ public class EventLogin extends Login implements ActionListener {
     }
     if (e.getSource() == btLogar || e.getSource() == tfSenha) {
       if (logar()) {
-//                System.out.println(new conexao().config.getString("url"));
         StartPrincipal pr = new StartPrincipal();
         pr.setVisible(true);
         this.dispose();
       } else {
-        JOptionPane.showMessageDialog(null, "Exception Erro: \n Usuario/Senha Não Encontrado", "ClasseDAO Func. Salvar", 0);
+        JOptionPane.showMessageDialog(this, "Usuario/Senha Não Encontrado", "Login", JOptionPane.ERROR_MESSAGE);
       }
       tfUsuario.requestFocus();
     }

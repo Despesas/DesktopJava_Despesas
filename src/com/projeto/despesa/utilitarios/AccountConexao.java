@@ -1,71 +1,68 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.projeto.despesa.utilitarios;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import java.util.ResourceBundle;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Conexao com o banco de contas (tabela {@code usuario_server}), usado no login.
+ * Le {@code account.url}, {@code account.usuario} e {@code account.senha} do
+ * {@code config.properties} (antes ficavam em {@code account.properties} dentro do jar).
  *
  * @author WILL
  */
 public class AccountConexao {
 
-  private String url;
-  private String driver;
-  private String usuario;
-  private String senha;
-  public ResourceBundle config;
-  private Connection con;
-  public PreparedStatement pstm;
-  public ResultSet rs;
-  public DatabaseMetaData metaData;
+    private static final Logger LOG = Logger.getLogger(AccountConexao.class.getName());
 
-  //config.getString("url"),config.getString("driver"),config.getString("usuario"),config.getString("senha")
-  public AccountConexao() {
-    this.config = ResourceBundle.getBundle("com.projeto.despesa.utilitarios.account");
-    this.url = config.getString("url");
-    this.driver = config.getString("driver");
-    this.usuario = config.getString("usuario");
-    this.senha = config.getString("senha");
-//      conectar();
-//      System.out.println("CLASSE CONEXAO: "+config.getString("local"));
+    private final String url;
+    private final String driver;
+    private final String usuario;
+    private final String senha;
+    private Connection con;
 
-  }
-
-  
-  public Connection conectar(String url, String driver, String usuario, String senha) {
-    try {
-      Class.forName(driver);
-      con = DriverManager.getConnection(url, usuario, senha);
-      System.out.println("CONECTADO!");
-    } catch (ClassNotFoundException ex) {
-      ex.printStackTrace();
-      System.out.println("Class: Conexao: Nao foi possivel encontrar o DRIVER");
-    } catch (SQLException ex) {
-      ex.printStackTrace();
-      System.out.println("Class: Conexao: Nao foi possivel Conectar ao Banco");
+    public AccountConexao() {
+        this(ConfiguracaoBanco.carregar());
     }
-    return con;
-  }
 
-  public void desconectar() {
-    try {
-      con.close();
-      System.out.println("DESCONECTADO!");
-    } catch (SQLException ex) {
-      ex.printStackTrace();
-      System.out.println("Class: Conexao: Nao foi possivel Desconectar");
+    public AccountConexao(Properties config) {
+        this.driver = config.getProperty("db.driver", ConfiguracaoBanco.DRIVER_PADRAO).trim();
+        this.url = ConfiguracaoBanco.montarUrl(ConfiguracaoBanco.obrigatoria(config, "account.url"), null);
+        this.usuario = ConfiguracaoBanco.obrigatoria(config, "account.usuario");
+        this.senha = config.getProperty("account.senha", "");
     }
-  }
+
+    public String getUrl() {
+        return url;
+    }
+
+    /** Abre uma nova conexao; quem chama deve fecha-la (try-with-resources). */
+    public Connection abrir() throws SQLException {
+        conexao.carregarDriver(driver);
+        return DriverManager.getConnection(url, usuario, senha);
+    }
+
+    public Connection conectar(String url, String driver, String usuario, String senha) {
+        try {
+            conexao.carregarDriver(driver);
+            con = DriverManager.getConnection(url, usuario, senha);
+        } catch (SQLException ex) {
+            LOG.log(Level.SEVERE, "Nao foi possivel conectar ao banco de contas", ex);
+        }
+        return con;
+    }
+
+    public void desconectar() {
+        if (con == null) {
+            return;
+        }
+        try {
+            con.close();
+        } catch (SQLException ex) {
+            LOG.log(Level.WARNING, "Nao foi possivel desconectar", ex);
+        }
+    }
 }

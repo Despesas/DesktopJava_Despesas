@@ -35,7 +35,7 @@ public class FormatarCampo {
     int rows = 3;
     int cols = 3;
     int margin = 2;
-    public NumberFormat numberFormat = NumberFormat.getInstance();
+    public NumberFormat numberFormat = CalculoParcela.formatoMoeda(); // pt-BR fixo: os valores sao lidos com replace(".", "").replace(",", ".")
 
     public FormatarCampo() {
         formatarCampos();
@@ -48,10 +48,8 @@ public class FormatarCampo {
             IntTresDigt = new MaskFormatter("###");
             IntAno = new MaskFormatter("####");
             
-        numberFormat.setMaximumFractionDigits(2);
-        numberFormat.setMinimumFractionDigits(2);
         } catch (ParseException ex) {
-            ex.printStackTrace();
+            Logger.getLogger(FormatarCampo.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -59,7 +57,7 @@ public class FormatarCampo {
         for (Object campo : cont.getComponents()) {
 
             if (campo instanceof JTextField) {
-                if (((JTextField) campo).getName() != "tfValor") {
+                if (!"tfValor".equals(((JTextField) campo).getName())) {
                     ((JTextField) campo).setText(null);
                 }
                 else{
@@ -75,12 +73,12 @@ public class FormatarCampo {
                 ((JFormattedTextField) campo).setEnabled(ToF);
             }
             if (campo instanceof JComboBox) {
-                if (((JComboBox) campo).getName() != "cbTipoBanco") {
+                if (!"cbTipoBanco".equals(((JComboBox) campo).getName())) {
                     ((JComboBox) campo).setEnabled(ToF);
                 }
             }
             if (campo instanceof JTextField) {
-                if (((JTextField) campo).getName() != "tfCodigo") {
+                if (!"tfCodigo".equals(((JTextField) campo).getName())) {
                     ((JTextField) campo).setEnabled(ToF);
                 }
 
@@ -134,7 +132,7 @@ public class FormatarCampo {
 //    }
     public int getNumBoolean(String cb) {
         int Selec;
-        if (cb == "SIM") {
+        if ("SIM".equalsIgnoreCase(cb)) {
             Selec = 1;
         } else {
             Selec = 0;
@@ -236,7 +234,7 @@ public class FormatarCampo {
      */
     public MaskFormatter getIntAno() {
         try {
-            IntTresDigt = new MaskFormatter("####");
+            IntAno = new MaskFormatter("####");
         } catch (ParseException ex) {
             Logger.getLogger(FormatarCampo.class.getName()).log(Level.SEVERE, null, ex);
         }

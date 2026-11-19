@@ -13,6 +13,7 @@ import com.projeto.despesa.starter.StartAlteraDespesas;
 import com.projeto.despesa.starter.StartCadastroPagamento;
 import com.projeto.despesa.starter.StartDespesas;
 import com.projeto.despesa.utilitarios.Data;
+import com.projeto.despesa.utilitarios.CalculoParcela;
 import com.projeto.despesa.utilitarios.FormatarCampo;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -150,14 +151,10 @@ public class EventPrincipal extends Principal implements ActionListener {
           Calendar dtPag = new Data().getDataforCalendar(new Data().getDataTela(despesas.get(i).getData_pag()));
 
           Float valorp = despesas.get(i).getValor_parcela();
-          Float valort = despesas.get(i).getValor_parcela() * despesas.get(i).getParcelas();
-          if (dtAtual.compareTo(dtPag) >= 0) {
-            this.quant = (despesas.get(i).getParcelas() - despesas.get(i).getParcela());
-          } else {
-            this.quant = (despesas.get(i).getParcelas() - despesas.get(i).getParcela()) + 1;
-          }
+          boolean vencida = dtPag != null && dtAtual.compareTo(dtPag) >= 0;
+          this.quant = CalculoParcela.parcelasRestantes(despesas.get(i).getParcelas(), despesas.get(i).getParcela(), vencida);
 
-          this.valor_restante = (valorp * quant);
+          this.valor_restante = (float) CalculoParcela.valorRestante(valorp, quant);
           /*
            * quant = (parcelas - parcela)+1; Double valor_restante =
            * (valorParcela * quant);
@@ -176,14 +173,14 @@ public class EventPrincipal extends Principal implements ActionListener {
           painelTabelaDespesas.tfRegistroPosicaoTB.setText(despesas.get(i).getSql());
           // tmDespesa.setValueAt(despesas.get(i).getValor_restante(), i, 8);
 
-          this.valor = Double.parseDouble(new FormatarCampo().numberFormat.format(this.valor + despesas.get(i).getValor()).replace(".", "").replace(",", "."));
-          this.valor_parcela = Double.parseDouble(new FormatarCampo().numberFormat.format(this.valor_parcela + despesas.get(i).getValor_parcela()).replace(".", "").replace(",", "."));
+          this.valor = CalculoParcela.arredondar(this.valor + despesas.get(i).getValor());
+          this.valor_parcela = CalculoParcela.arredondar(this.valor_parcela + despesas.get(i).getValor_parcela());
 
           //  String valorS = new FormatarCampo().numberFormat.format(this.valor + despesas.get(i).getValor()).replace(".", "").replace(",", ".");
 
 
         }
-        lbValor.setText(new DecimalFormat().format(this.valor_parcela));
+        lbValor.setText(CalculoParcela.formatarValor(this.valor_parcela));
 //                lbValorTotal.setText(new DecimalFormat().format(this.valor));
         
       }
@@ -234,7 +231,7 @@ public class EventPrincipal extends Principal implements ActionListener {
   private String getOregiemDesc(Integer cod_orindo, List<Oriundo> listOrigem) {
     String desc = "";
     for (int i = 0; i < listOrigem.size(); i++) {
-      if (listOrigem.get(i).getCodigo() == cod_orindo) {
+      if (listOrigem.get(i).getCodigo().equals(cod_orindo)) {
 //                System.out.println("List 1 Des: " + listOrigem.get(i).getDescricao() + ": " + listOrigem.get(i).getCodigo());
         desc = "" + listOrigem.get(i).getDescricao();
       }

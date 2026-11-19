@@ -9,6 +9,7 @@ import com.projeto.despesa.dto.Oriundo;
 import com.projeto.despesa.form.AddOrigemPag;
 import com.projeto.despesa.starter.StartDespesas;
 import com.projeto.despesa.utilitarios.Data;
+import com.projeto.despesa.utilitarios.Mensagens;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
@@ -58,14 +59,20 @@ public class EventAddOrigem extends AddOrigemPag implements ActionListener {
         Oriundo oriundo = new Oriundo();
         oriundo.setData_cadastro(new Data().getDataBanco(tfData.getText()));
         oriundo.setDescricao(tfDescricao.getText());
-        oriundo.setDia_fechamento(Integer.parseInt(ftfDiaFechamento.getText()));
-        oriundo.setDia_pag(Integer.parseInt(ftfDiaPagamento.getText()));
+        try {
+            oriundo.setDia_fechamento(Integer.parseInt(ftfDiaFechamento.getText().trim()));
+            oriundo.setDia_pag(Integer.parseInt(ftfDiaPagamento.getText().trim()));
+        } catch (NumberFormatException ex) {
+            Mensagens.erro("Origem de Pagamento", "Informe os dias de fechamento e de pagamento.", ex);
+            return;
+        }
         try {
             new OriundoDAO().salvar(oriundo);
             
            // new StartDespesas();
         } catch (SQLException ex) {
-            Logger.getLogger(EventAddOrigem.class.getName()).log(Level.SEVERE, null, ex);
+            // antes so ia para o log: a tela fechava como se tivesse gravado
+            Mensagens.erro("Origem de Pagamento", "Nao foi possivel gravar a origem.", ex);
         } finally {
             new StartDespesas(this.parcela, this.parcelas, this.data, this.obs, this.descricao, this.status, this.valor);            
             this.dispose();

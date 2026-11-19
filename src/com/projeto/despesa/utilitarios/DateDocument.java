@@ -46,7 +46,7 @@ public class DateDocument extends PlainDocument {
         }  
   
         //Verificar o tamanho maximo permitido  
-        if (getLength() > TAMANHO_TEXTO) {  
+        if (getLength() + str.length() > TAMANHO_TEXTO) {  
             return;  
         }  
   

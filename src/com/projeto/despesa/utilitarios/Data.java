@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.projeto.despesa.utilitarios;
 
 import java.sql.Date;
@@ -9,139 +5,101 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 
 /**
+ * Conversoes de data entre a tela (dd/MM/yyyy) e o banco (java.sql.Date) e
+ * calculo das datas de pagamento.
  *
  * @author WILL
  */
 public class Data {
 
-    DateFormat formatoTextField = new SimpleDateFormat("dd/MM/yyyy");
-    DateFormat formatoDataBase = new SimpleDateFormat("yyyy-MM-dd");
-    Calendar dataCalendar = Calendar.getInstance();
-    Calendar dataFecha = Calendar.getInstance();
-    Date dataBanco;
-    String dataTela;
+    public static final String FORMATO_TELA = "dd/MM/yyyy";
+
+    private final DateFormat formatoTextField;
 
     public Data() {
+        formatoTextField = new SimpleDateFormat(FORMATO_TELA);
+        // datas como 31/02/2015 eram aceitas e viravam 03/03/2015
+        formatoTextField.setLenient(false);
     }
 
     public String getDataAtual() {
-        dataCalendar.getInstance();
-        //String dataAtual = dataCalendar.DAY_OF_MONTH+"/"+dataCalendar.MONTH+"/"+dataCalendar.YEAR;
-        String dataAtual = formatoTextField.format(dataCalendar.getTime());
-        return dataAtual;
+        return formatoTextField.format(Calendar.getInstance().getTime());
     }
 
-    public Date getDataBanco(String Data) {
+    /** Converte "dd/MM/yyyy" para java.sql.Date; devolve null se a data for invalida. */
+    public Date getDataBanco(String data) {
         try {
-            this.dataCalendar.setTime(formatoTextField.parse(Data));
-            // System.out.println(formatoDataBase.format(dataCalendar.getTime()));
-            this.dataBanco = Date.valueOf(formatoDataBase.format(dataCalendar.getTime()));
+            return new Date(parse(data).getTime());
         } catch (ParseException e) {
-            JOptionPane.showMessageDialog(null, "Formato de Data Errado: " + e.getMessage(), "Data", 0);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Formato de Data Errado: " + e.getMessage(), "Data", 0);
+            Mensagens.erro("Data", "Formato de Data Errado: " + data, e);
+            return null;
         }
-
-
-        return dataBanco;
     }
 
-    public String getDataTela(java.util.Date Data) {
-        try {
-            // this.dataCalendar= formatoDataBase.format(Data);
-            this.dataTela = formatoTextField.format(Data);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Formato de Data Errado: " + e.getMessage(), "Data", 0);
+    public String getDataTela(java.util.Date data) {
+        if (data == null) {
+            return "";
         }
-
-        return dataTela;
+        return formatoTextField.format(data);
     }
 
-    public Calendar getDataforCalendar(String Data) {
-        Calendar Cal = null;
+    public Calendar getDataforCalendar(String data) {
         try {
-            this.dataCalendar.setTime(formatoTextField.parse(Data));
-            Cal = this.dataCalendar;
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(parse(data));
+            return cal;
         } catch (ParseException e) {
-            JOptionPane.showMessageDialog(null, "Formato de Data Errado: " + e.getMessage(), "Data - Calendar", 0);
+            Mensagens.erro("Data - Calendar", "Formato de Data Errado: " + data, e);
+            return null;
         }
-
-
-        return Cal;
     }
 
+    /**
+     * Calcula a data de pagamento de uma compra feita em {@code dataCadDesp}
+     * numa origem (cartao) que fecha no dia {@code diaF} e vence no dia
+     * {@code diaP}: compras antes do fechamento vencem no mes seguinte; as
+     * demais, dois meses depois. Dias inexistentes (ex.: 31 em fevereiro) sao
+     * ajustados para o ultimo dia do mes.
+     *
+     * @return a data no formato dd/MM/yyyy, ou "" se a data da compra for invalida
+     */
     public String getDataPag(int diaP, int diaF, String dataCadDesp) {
-        String dataFechamnto = "";
-        Calendar dataPag = Calendar.getInstance();
-
+        Calendar compra = Calendar.getInstance();
         try {
-            this.dataCalendar.setTime(formatoTextField.parse(dataCadDesp));
-            dataFechamnto = diaF + "/" + (1 + dataCalendar.getTime().getMonth()) + "/" + (1900 + dataCalendar.getTime().getYear());
-            System.out.println(dataFechamnto);
-            this.dataFecha.setTime(formatoTextField.parse(dataFechamnto));
-
-            if (dataCalendar.before(dataFecha)) {
-                if (1 + dataFecha.getTime().getMonth() == 12) {
-                    // dataPag = diaP+"/01/"+dataCalendar.YEAR+1;
-                    dataPag.set(1900 + dataCalendar.getTime().getYear() + 1, 0, diaP);
-
-                } else {
-                    // dataPag = diaP+"/"+dataCalendar.MONTH+1+"/"+dataCalendar.YEAR;
-                    dataPag.set(1900 + dataCalendar.getTime().getYear(), dataFecha.getTime().getMonth() + 1, diaP);
-                }
-            } else {
-                if (1 + dataFecha.getTime().getMonth() < 11) {
-                    // dataPag = diaP+"/"+dataCalendar.MONTH+2+"/"+dataCalendar.YEAR;
-                    dataPag.set(1900 + dataCalendar.getTime().getYear(), dataCalendar.getTime().getMonth() + 2, diaP);
-                } else {
-                    if (1 + dataFecha.getTime().getMonth() == 12) {
-                        // dataPag = diaP+"/02/"+dataCalendar.YEAR+1;
-                        dataPag.set(1900 + dataCalendar.getTime().getYear() + 1, 1, diaP);
-                    } else {
-                        if (1 + dataFecha.getTime().getMonth() == 11) {
-                            //dataPag = diaP+"/01/"+dataCalendar.YEAR+1;
-                            dataPag.set(1900 + dataCalendar.getTime().getYear() + 1, 0, diaP);
-                        }
-                    }
-                }
-            }
-
-
-        } catch (ParseException parseException) {
+            compra.setTime(parse(dataCadDesp));
+        } catch (ParseException e) {
+            Mensagens.erro("Data de Pagamento", "Formato de Data Errado: " + dataCadDesp, e);
+            return "";
         }
-        String dataPagamento = formatoTextField.format(dataPag.getTime());
-        return dataPagamento;
+        Calendar fechamento = (Calendar) compra.clone();
+        definirDia(fechamento, diaF);
+
+        Calendar pagamento = (Calendar) compra.clone();
+        pagamento.set(Calendar.DAY_OF_MONTH, 1);
+        pagamento.add(Calendar.MONTH, compra.before(fechamento) ? 1 : 2);
+        definirDia(pagamento, diaP);
+        return formatoTextField.format(pagamento.getTime());
     }
 
-    public String getProximoMes(Date data) {
-        String dataProximoMes = "";
-        String data1 = formatoTextField.format(data);
-        System.out.println(data1);
-        try {
-            this.dataCalendar.setTime(formatoTextField.parse(data1));
-            System.out.println(this.dataCalendar.getTime().getMonth());
-            if (this.dataCalendar.getTime().getMonth() < 11) {
-               // System.out.println("> 11");
-                this.dataCalendar.set(1900 + this.dataCalendar.getTime().getYear(),this.dataCalendar.getTime().getMonth() + 1, this.dataCalendar.getTime().getDate());
+    /** Mesma data no mes seguinte (31/01 vira 28/02 ou 29/02, e nao 03/03). */
+    public String getProximoMes(java.util.Date data) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(data);
+        cal.add(Calendar.MONTH, 1);
+        return formatoTextField.format(cal.getTime());
+    }
 
-            } else {
-                System.out.println("<= 11");
-                this.dataCalendar.set(1900 + this.dataCalendar.getTime().getYear() + 1, 0, this.dataCalendar.getTime().getDate());
-            }
-
-
-            dataProximoMes = formatoTextField.format(dataCalendar.getTime());
-        } catch (ParseException ex) {
-            JOptionPane.showMessageDialog(null, "Formato de Data Errado: " + ex.getMessage(), "Data - Calendar", 0);
+    private java.util.Date parse(String data) throws ParseException {
+        if (data == null) {
+            throw new ParseException("data nula", 0);
         }
+        return formatoTextField.parse(data.trim());
+    }
 
-
-
-        return dataProximoMes;
+    private static void definirDia(Calendar cal, int dia) {
+        int ultimo = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        cal.set(Calendar.DAY_OF_MONTH, Math.max(1, Math.min(dia, ultimo)));
     }
 }

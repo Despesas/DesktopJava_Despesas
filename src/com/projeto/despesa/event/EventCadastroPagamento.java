@@ -12,6 +12,7 @@ import com.projeto.despesa.dao.Forma_pagamentoDAO;
 import com.projeto.despesa.dao.OriundoDAO;
 import com.projeto.despesa.dto.Forma_pagamento;
 import com.projeto.despesa.dto.Oriundo;
+import com.projeto.despesa.utilitarios.Mensagens;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Array;
@@ -82,7 +83,7 @@ public class EventCadastroPagamento extends CadastroPagamento implements ActionL
 
       return true;
     } catch (SQLException ex) {
-      Logger.getLogger(EventCadastroPagamento.class.getName()).log(Level.SEVERE, null, ex);
+      Mensagens.erro("Pagamento", "Nao foi possivel carregar os dados da tela de pagamento.", ex);
       return false;
     }
   }

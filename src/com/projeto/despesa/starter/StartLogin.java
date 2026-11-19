@@ -79,10 +79,18 @@ public class StartLogin extends EventLogin {
                     i++;
                     try {
                         sleep(20);
-                    } catch (Exception ex) {
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                        break;
                     }
                 }
-                StartNow();
+                // telas Swing devem ser criadas na thread de eventos
+                javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        StartNow();
+                    }
+                });
 
             }
         }.start();

@@ -1,188 +1,83 @@
 package com.projeto.despesa.dao;
 
 import com.projeto.despesa.dto.Oriundo;
+import com.projeto.despesa.utilitarios.Mensagens;
 import com.projeto.despesa.utilitarios.conexao;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.swing.*;
-
+/** Acesso a tabela {@code oriundo} (origens de pagamento: cartoes, contas...). */
 public class OriundoDAO {
 
-    public OriundoDAO() {
-        try {
-            Class.forName(new conexao().config.getString("driver"));
-        } catch (ClassNotFoundException ex) {
-            JOptionPane.showMessageDialog(null, "Driver Erro: " + ex.getMessage(), "Construtor da Classe", 0);
-            ex.printStackTrace();
-        }
-    }
-
     public void salvar(Oriundo oriundo) throws SQLException {
-        Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-        PreparedStatement ps = null;
-        String sqlSalvar = "INSERT INTO oriundo (descricao, data_cadastro, dia_fechamento, dia_pag ) VALUES (?, ?, ?, ?)";
-        try {
-            ps = con.prepareStatement(sqlSalvar);
+        String sql = "INSERT INTO oriundo (descricao, data_cadastro, dia_fechamento, dia_pag) VALUES (?, ?, ?, ?)";
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, oriundo.getDescricao());
             ps.setDate(2, oriundo.getData_cadastro());
             ps.setInt(3, oriundo.getDia_fechamento());
             ps.setInt(4, oriundo.getDia_pag());
             ps.executeUpdate();
-           // JOptionPane.showMessageDialog(null, "Inserido Com Sucesso: ", "Mensagem do Sistema - Salvar", 1);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Salvar", 0);
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-            e.printStackTrace();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-            e.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Salvar", 0);
-            e.printStackTrace();
-        } finally {
-            ps.close();
-            con.close();
         }
     }
 
     public void atualizar(Oriundo oriundo) throws SQLException {
-        Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-        PreparedStatement ps = null;
-        String sqlAtualizar = "UPDATE oriundo SET descricao=?, data_cadastro=?, dia_fechamento=?, dia_pag=? WHERE codigo=?";
-        try {
-            ps = con.prepareStatement(sqlAtualizar);
+        String sql = "UPDATE oriundo SET descricao=?, data_cadastro=?, dia_fechamento=?, dia_pag=? WHERE codigo=?";
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, oriundo.getDescricao());
             ps.setDate(2, oriundo.getData_cadastro());
             ps.setInt(3, oriundo.getDia_fechamento());
             ps.setInt(4, oriundo.getDia_pag());
             ps.setInt(5, oriundo.getCodigo());
             ps.executeUpdate();
-            JOptionPane.showMessageDialog(null, "Atualizado Com Sucesso: ", "Mensagem do Sistema - Atualizar", 1);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Atualizar", 0);
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-            e.printStackTrace();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-            e.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Atualizar", 0);
-            e.printStackTrace();
-        } finally {
-            ps.close();
-            con.close();
         }
+        Mensagens.info("Mensagem do Sistema - Atualizar", "Atualizado Com Sucesso");
     }
 
     public void excluir(Oriundo oriundo) throws SQLException {
-        Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-        PreparedStatement ps = null;
-        String sqlExcluir = "DELETE FROM oriundo WHERE codigo=?";
-        try {
-            ps = con.prepareStatement(sqlExcluir);
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("DELETE FROM oriundo WHERE codigo=?")) {
             ps.setInt(1, oriundo.getCodigo());
             ps.executeUpdate();
-            JOptionPane.showMessageDialog(null, "Ecluido Com Sucesso: ", "Mensagem do Sistema - Excluir", 1);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Excluir", 0);
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-            e.printStackTrace();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-            e.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Excluir", 0);
-            e.printStackTrace();
-        } finally {
-            ps.close();
-            con.close();
         }
+        Mensagens.info("Mensagem do Sistema - Excluir", "Excluido Com Sucesso");
     }
 
+    /** @return a origem, ou {@code null} se o codigo nao existir */
     public Oriundo localizar(Integer codigo) throws SQLException {
-        Connection con = DriverManager.getConnection(new conexao().url, new conexao().config.getString("usuario"), new conexao().config.getString("senha"));
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String sqlLocalizar = "SELECT * FROM oriundo WHERE codigo=?";
-        Oriundo oriundo = new Oriundo();
-        try {
-            ps = con.prepareStatement(sqlLocalizar);
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("SELECT * FROM oriundo WHERE codigo=?")) {
             ps.setInt(1, codigo);
-            rs = ps.executeQuery();
-            //if(!rs.next()){
-            //return null;
-            //}
-            oriundo.setCodigo(rs.getInt("codigo"));
-            oriundo.setDescricao(rs.getString("descricao"));
-            oriundo.setData_cadastro(rs.getDate("data_cadastro"));
-            oriundo.setDia_fechamento(rs.getInt("dia_fechamento"));
-            oriundo.setDia_pag(rs.getInt("dia_pag"));
-            return oriundo;
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Localizar", 0);
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } finally {
-            ps.close();
-            con.close();
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? mapear(rs) : null;
+            }
         }
-        return oriundo;
     }
 
     public List<Oriundo> listar() throws SQLException {
         List<Oriundo> resultado = new ArrayList<Oriundo>();
-        conexao propCon = new conexao();
-        Connection con = DriverManager.getConnection(new conexao().url, propCon.config.getString("usuario"), propCon.config.getString("senha"));
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        String sqlListar = "SELECT * FROM oriundo Order by codigo DESC";
-        Oriundo oriundo;
-        try {
-            ps = con.prepareStatement(sqlListar);
-            rs = ps.executeQuery();
-            //if(rs==null){
-            //return null;
-            //}
+        try (Connection con = conexao.novaConexao();
+                PreparedStatement ps = con.prepareStatement("SELECT * FROM oriundo ORDER BY codigo DESC");
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                oriundo = new Oriundo();
-                oriundo.setCodigo(rs.getInt("codigo"));
-                oriundo.setDescricao(rs.getString("descricao"));
-                oriundo.setData_cadastro(rs.getDate("data_cadastro"));
-                oriundo.setDia_fechamento(rs.getInt("dia_fechamento"));
-                oriundo.setDia_pag(rs.getInt("dia_pag"));
-                resultado.add(oriundo);
+                resultado.add(mapear(rs));
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "NumberFormaterExeption Erro: " + e.getMessage(), "ClasseDAO Func.Localizar", 0);
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(null, "NullPointerException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "SQLException Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Exception Erro: " + e.getMessage(), "ClasseDAO Func. Localizar", 0);
-            e.printStackTrace();
-        } finally {
-            ps.close();
-            con.close();
         }
         return resultado;
+    }
+
+    public static Oriundo mapear(ResultSet rs) throws SQLException {
+        Oriundo oriundo = new Oriundo();
+        oriundo.setCodigo(rs.getInt("codigo"));
+        oriundo.setDescricao(rs.getString("descricao"));
+        oriundo.setData_cadastro(rs.getDate("data_cadastro"));
+        oriundo.setDia_fechamento(rs.getInt("dia_fechamento"));
+        oriundo.setDia_pag(rs.getInt("dia_pag"));
+        return oriundo;
     }
 }
